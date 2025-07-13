@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2214618538122354"
+     crossorigin="anonymous"></script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Interactive AI Zen Garden</title>
@@ -14,6 +17,8 @@
         }
     }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -204,6 +209,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     <span>Build</span>
                 </button>
+                 <button id="object-tool" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m10 14 2 2 2-2"/></svg>
+                    <span>Objects</span>
+                </button>
             </div>
             <div class="grid grid-cols-2 gap-2">
                  <button id="undo-button" class="tool-button">
@@ -249,14 +258,31 @@
                 <label for="build-height-slider" class="text-sm font-medium text-gray-300 mt-2">Build Height</label>
                 <input type="range" id="build-height-slider" min="0" max="10" step="0.1" value="0" class="w-full">
             </div>
+            <div id="object-settings" class="setting-group hidden">
+                <label for="object-select" class="text-sm font-medium text-gray-300">Object Type</label>
+                <select id="object-select" class="w-full bg-gray-700 border border-gray-600 text-white rounded-md p-2">
+                    <option value="bonsai">Bonsai Tree</option>
+                    <option value="lantern">Lantern</option>
+                </select>
+            </div>
         </div>
         
+        <div class="ui-section">
+            <h2 class="ui-title">Environment</h2>
+            <div class="grid grid-cols-3 gap-2">
+                <button id="day-night-button" class="tool-button">Day</button>
+                <button id="rain-button" class="tool-button">Rain</button>
+                <button id="blossom-button" class="tool-button">Blossom</button>
+            </div>
+        </div>
+
         <div class="ui-section">
             <h2 class="ui-title">✨ AI Magic</h2>
             <input type="text" id="mood-input" placeholder="Enter a mood (e.g., 'serenity')">
             <button id="create-garden-button" class="tool-button !bg-green-700 !border-green-500 hover:!bg-green-600">Create from Mood</button>
             <button id="name-garden-button" class="tool-button !bg-blue-700 !border-blue-500 hover:!bg-blue-600">Name This Garden</button>
             <button id="fortune-button" class="tool-button !bg-purple-700 !border-purple-500 hover:!bg-purple-600">Read its Fortune</button>
+            <button id="meditate-button" class="tool-button !bg-teal-700 !border-teal-500 hover:!bg-teal-600">Meditate on This</button>
         </div>
 
         <div class="ui-section text-center text-xs text-gray-500 pt-2 border-t border-gray-700/50">
@@ -352,9 +378,10 @@
         let deformationBuffer = new Float32Array(originalVertices.count);
         let isPainted = false;
 
-        // --- Rocks & Sand Structures ---
+        // --- Rocks, Tubes & Objects ---
         let rocks = [];
         let sandTubes = [];
+        let specialObjects = [];
         
         function createRockMaps() {
             const size = 128;
@@ -449,13 +476,18 @@
         const rockToolBtn = document.getElementById('rock-tool');
         const paintToolBtn = document.getElementById('paint-tool');
         const buildToolBtn = document.getElementById('build-tool');
+        const objectToolBtn = document.getElementById('object-tool');
         const resetGardenBtn = document.getElementById('reset-garden-button');
         const saveImageBtn = document.getElementById('save-image-button');
         const shareBtn = document.getElementById('share-button');
         const undoBtn = document.getElementById('undo-button');
+        const dayNightBtn = document.getElementById('day-night-button');
+        const rainBtn = document.getElementById('rain-button');
+        const blossomBtn = document.getElementById('blossom-button');
         const fortuneButton = document.getElementById('fortune-button');
         const nameGardenButton = document.getElementById('name-garden-button');
         const createGardenButton = document.getElementById('create-garden-button');
+        const meditateBtn = document.getElementById('meditate-button');
         const moodInput = document.getElementById('mood-input');
         const infoModal = document.getElementById('info-modal');
         const infoModalTitle = document.getElementById('info-modal-title');
@@ -471,6 +503,7 @@
         const paintSizeSlider = document.getElementById('paint-size-slider');
         const buildSizeSlider = document.getElementById('build-size-slider');
         const buildHeightSlider = document.getElementById('build-height-slider');
+        const objectSelect = document.getElementById('object-select');
         const colorPicker = document.getElementById('color-picker');
 
         // --- Event Listeners ---
@@ -479,14 +512,19 @@
         rockToolBtn.addEventListener('click', () => { currentTool = 'rock'; updateActiveTool(); });
         paintToolBtn.addEventListener('click', () => { currentTool = 'paint'; updateActiveTool(); });
         buildToolBtn.addEventListener('click', () => { currentTool = 'build'; updateActiveTool(); });
+        objectToolBtn.addEventListener('click', () => { currentTool = 'object'; updateActiveTool(); });
         resetGardenBtn.addEventListener('click', clearGarden);
         saveImageBtn.addEventListener('click', saveAsImage);
         shareBtn.addEventListener('click', shareGarden);
         undoBtn.addEventListener('click', undo);
+        dayNightBtn.addEventListener('click', toggleDayNight);
+        rainBtn.addEventListener('click', toggleRain);
+        blossomBtn.addEventListener('click', toggleBlossoms);
         copyLinkBtn.addEventListener('click', copyShareLink);
         fortuneButton.addEventListener('click', () => runAIWithAd(getFortune));
         nameGardenButton.addEventListener('click', () => runAIWithAd(nameGarden));
         createGardenButton.addEventListener('click', () => runAIWithAd(createGardenFromMood));
+        meditateBtn.addEventListener('click', () => runAIWithAd(getMeditation));
         closeModalBtn.addEventListener('click', () => infoModal.classList.remove('visible'));
         buildHeightSlider.addEventListener('input', () => {
             buildHelper.position.y = parseFloat(buildHeightSlider.value);
@@ -507,6 +545,7 @@
             rockToolBtn.classList.toggle('active', currentTool === 'rock');
             paintToolBtn.classList.toggle('active', currentTool === 'paint');
             buildToolBtn.classList.toggle('active', currentTool === 'build');
+            objectToolBtn.classList.toggle('active', currentTool === 'object');
             
             controls.enabled = currentTool === 'control';
             buildHelper.visible = currentTool === 'build';
@@ -515,6 +554,7 @@
             document.getElementById('rock-settings').style.display = currentTool === 'rock' ? 'block' : 'none';
             document.getElementById('paint-settings').style.display = currentTool === 'paint' ? 'block' : 'none';
             document.getElementById('build-settings').style.display = currentTool === 'build' ? 'block' : 'none';
+            document.getElementById('object-settings').style.display = currentTool === 'object' ? 'block' : 'none';
         }
 
         function getPointerCoords(event) {
@@ -549,12 +589,14 @@
                     buildPath = [targetPoint.clone()];
                 }
             } else {
-                const intersects = raycaster.intersectObjects([sand, ...rocks, ...sandTubes], true);
+                const intersects = raycaster.intersectObjects([sand, ...rocks, ...sandTubes, ...specialObjects], true);
                 if (intersects.length > 0) {
                     if (currentTool === 'rock') {
                         const sizeFactor = parseFloat(stoneSizeSlider.value);
                         const color = new THREE.Color(colorPicker.value);
                         addRock(intersects[0].point, sizeFactor, color);
+                    } else if (currentTool === 'object') {
+                        placeSpecialObject(intersects[0].point);
                     } else {
                         saveState();
                         handleInteraction(intersects[0].point, intersects[0].object === sand ? intersects[0].uv : null);
@@ -576,7 +618,7 @@
         }
 
         function onInteractionMove(event) {
-            if (!isInteracting || currentTool === 'control' || currentTool === 'rock') return;
+            if (!isInteracting || currentTool === 'control' || currentTool === 'rock' || currentTool === 'object') return;
             event.preventDefault();
 
             const coords = getPointerCoords(event);
@@ -703,6 +745,8 @@
             rocks = [];
             sandTubes.forEach(tube => scene.remove(tube));
             sandTubes = [];
+            specialObjects.forEach(obj => scene.remove(obj));
+            specialObjects = [];
 
             deformationBuffer.fill(0);
             
@@ -748,6 +792,7 @@
             const state = {
                 rocks: rocks.map(r => ({ position: r.position.clone(), material: r.material.clone() })),
                 sandTubes: sandTubes.map(t => ({ geometry: t.geometry.clone(), material: t.material.clone(), position: t.position.clone(), quaternion: t.quaternion.clone() })),
+                specialObjects: specialObjects.map(o => ({ type: o.userData.type, position: o.position.clone(), quaternion: o.quaternion.clone() })),
                 deformationBuffer: new Float32Array(deformationBuffer),
                 sandTexture: sandTextureContext.getImageData(0, 0, sandTextureSize, sandTextureSize),
                 isPainted: isPainted
@@ -782,6 +827,11 @@
                 tube.quaternion.copy(tubeData.quaternion);
                 scene.add(tube);
                 sandTubes.push(tube);
+            });
+
+            // Restore special objects
+            state.specialObjects.forEach(objData => {
+                 placeSpecialObject(objData.position, objData.type, false);
             });
             
             deformationBuffer = new Float32Array(state.deformationBuffer);
@@ -877,6 +927,7 @@
         function getGardenDescription() {
             const rockCount = rocks.length;
             const tubeCount = sandTubes.length;
+            const objectCount = specialObjects.length;
             let totalDeformation = 0;
             for (let i = 0; i < deformationBuffer.length; i++) {
                 totalDeformation += Math.abs(deformationBuffer[i]);
@@ -884,8 +935,9 @@
             const deformationLevel = totalDeformation > 10 ? (totalDeformation > 100 ? "deeply disturbed" : "gently raked") : "calm";
             const colorDescription = isPainted ? "The sand is vividly colored." : "The sand is natural.";
             const buildDescription = tubeCount > 0 ? `It features ${tubeCount} sand sculptures.` : "";
+            const objectDescription = objectCount > 0 ? `It contains ${objectCount} special objects.` : "";
 
-            return `The garden has ${rockCount} stones. The sand is ${deformationLevel}. ${colorDescription} ${buildDescription}`;
+            return `The garden has ${rockCount} stones. The sand is ${deformationLevel}. ${colorDescription} ${buildDescription} ${objectDescription}`;
         }
 
         async function getFortune() {
@@ -922,6 +974,20 @@
             } catch (error) {
                 console.error("Error naming garden:", error);
                 showModal("An Error Occurred", "The garden's name remains elusive. Please try again.");
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        async function getMeditation() {
+            setLoadingState(true);
+            showModal("A Moment of Reflection", "Preparing a meditation for your garden...");
+            try {
+                const meditation = await callGeminiAPI(`You are a calm meditation guide. Based on the state of this zen garden (${getGardenDescription()}), provide a short, 3-4 sentence guided meditation.`);
+                if (meditation) showModal("A Moment of Reflection", meditation);
+            } catch (error) {
+                console.error("Error fetching meditation:", error);
+                showModal("An Error Occurred", "The mind is cloudy today. Please try again.");
             } finally {
                 setLoadingState(false);
             }
@@ -1076,4 +1142,3 @@
     </script>
 </body>
 </html>
-"
