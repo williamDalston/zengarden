@@ -278,6 +278,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m10 14 2 2 2-2"/></svg>
                         <span>Objects</span>
                     </button>
+                    <button id="water-tool" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><path d="M2 20a5.9 5.9 0 0 1 4-2"/></svg>
+                        <span>Water</span>
+                    </button>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                      <button id="undo-button" class="tool-button">
@@ -383,6 +387,36 @@
     <div id="radial-menu"></div>
 
     <script type="module">
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (window.Capacitor?.isNativePlatform()) {
+      const { AdMob, BannerAdSize } = await import('@capacitor-community/admob');
+
+      await AdMob.requestTrackingAuthorization();
+
+      await AdMob.initialize({
+        requestTrackingAuthorization: false
+      });
+
+      await AdMob.showBanner({
+        adId: Capacitor.getPlatform() === 'ios'
+          ? 'ca-app-pub-3940256099942544/2934735716'
+          : 'ca-app-pub-3940256099942544/6300978111',
+        adSize: BannerAdSize.SMART_BANNER,
+        position: 'bottom',   // replaced AdPosition.BOTTOM_CENTER
+        margin: 0
+      });
+
+      AdMob.addListener('onAdLoaded', () => console.log('Banner loaded'));
+      AdMob.addListener('onAdFailedToLoad', err => console.warn('Banner error', err));
+    }
+  });
+</script>
+
+
+    <script type="module">
+
+        
+
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -546,6 +580,7 @@
         const paintToolBtn = document.getElementById('paint-tool');
         const buildToolBtn = document.getElementById('build-tool');
         const objectToolBtn = document.getElementById('object-tool');
+        const waterToolBtn = document.getElementById('water-tool');
         const resetGardenBtn = document.getElementById('reset-garden-button');
         const saveImageBtn = document.getElementById('save-image-button');
         const shareBtn = document.getElementById('share-button');
@@ -583,6 +618,7 @@
         paintToolBtn.addEventListener('click', () => { currentTool = 'paint'; updateActiveTool(); });
         buildToolBtn.addEventListener('click', () => { currentTool = 'build'; updateActiveTool(); });
         objectToolBtn.addEventListener('click', () => { currentTool = 'object'; updateActiveTool(); });
+        waterToolBtn.addEventListener('click', () => { currentTool = 'water'; updateActiveTool(); });
         resetGardenBtn.addEventListener('click', clearGarden);
         saveImageBtn.addEventListener('click', saveAsImage);
         shareBtn.addEventListener('click', shareGarden);
@@ -619,6 +655,7 @@
             paintToolBtn.classList.toggle('active', currentTool === 'paint');
             buildToolBtn.classList.toggle('active', currentTool === 'build');
             objectToolBtn.classList.toggle('active', currentTool === 'object');
+            waterToolBtn.classList.toggle('active', currentTool === 'water');
             
             controls.enabled = currentTool === 'control';
             buildHelper.visible = currentTool === 'build';

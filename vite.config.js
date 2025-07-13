@@ -1,8 +1,12 @@
-/** vite.config.js  – CommonJS version */
+const { resolve } = require('path'); // add this at top
+
 module.exports = {
-  base: './',          // ensures Capacitor loads files locally
+  base: './', // ensures Capacitor loads files locally
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions: {
+      input: resolve(__dirname, 'index.html') // <== this fixes "#/index.html" error
+    }
   }
 };
