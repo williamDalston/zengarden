@@ -28,18 +28,20 @@
             display: block;
         }
         #ui-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+            position: absolute;
+            top: 20px;
+            left: 20px;
             z-index: 10;
             display: flex;
+            flex-direction: column;
             gap: 16px;
             background-color: rgba(17, 24, 39, 0.85);
-            padding: 12px;
-            border-top: 1px solid rgba(55, 65, 81, 0.5);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            width: 280px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
         }
         .ui-section {
             display: flex;
@@ -48,7 +50,6 @@
             padding: 10px;
             background-color: rgba(31, 41, 55, 0.5);
             border-radius: 12px;
-            min-width: 240px;
         }
         .ui-title {
             font-weight: 600;
@@ -160,21 +161,6 @@
             border: 1px solid #4b5563;
             border-radius: 8px;
         }
-        /* Desktop layout */
-        @media (min-width: 768px) {
-            #ui-container {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                bottom: auto;
-                width: 280px;
-                flex-direction: column;
-                overflow-x: hidden;
-                overflow-y: auto;
-                border-top: none;
-                border-left: 1px solid rgba(55, 65, 81, 0.5);
-            }
-        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -185,7 +171,7 @@
     <div id="ui-container">
         <div class="ui-section">
             <h2 class="ui-title">Tools</h2>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 gap-2">
                  <button id="control-scene-button" class="tool-button active">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10c0-4.42-2.87-8.17-7-9.58"/><path d="M15.54 21.53a10 10 0 0 0 5.1-12.81"/><path d="M3.37 10.09a10 10 0 0 0 17.26 0"/></svg>
                     <span>Control</span>
