@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive AI Zen Garden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/"
+        }
+    }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #111827;
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: rgba(17, 24, 39, 0.85);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            width: 280px;
+            /* FIX: Make the UI panel scrollable on smaller screens */
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        .ui-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ui-title {
+            font-weight: 600;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tool-button {
+            background-color: rgba(55, 65, 81, 0.8);
+            color: white;
+            border: 1px solid rgba(75, 85, 99, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .tool-button:hover, .tool-button.active {
+            background-color: rgba(79, 70, 229, 0.9);
+            border-color: rgba(129, 140, 248, 0.9);
+        }
+        .tool-button:disabled {
+            background-color: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        #fortune-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #fortune-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #fortune-content {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid #4b5563;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        #mood-input {
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+        }
+        /* Custom styles for slider and color picker */
+        input[type=range] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4b5563;
+            border-radius: 5px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: 2px solid #c7d2fe;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type="color"] {
+            appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            width: 100%;
+            height: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="ui-container">
+        <div class="ui-section">
+            <h2 class="ui-title">Manual Tools</h2>
+            <div class="grid grid-cols-3 gap-2">
+                <button id="rake-tool" class="tool-button active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5v14"/><path d="M12 5v14"/><path d="M9 5v14"/><path d="M5 5v14"/><path d="M2 9h20"/></svg>
+                    <span>Rake</span>
+                </button>
+                <button id="rock-tool" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    <span>Stone</span>
+                </button>
+                <button id="paint-tool" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M16 4h-4a4 4 0 1 0 0 8h4"/><path d="M16 4v4"/><path d="M20 8v4"/></svg>
+                    <span>Paint</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                 <button id="reset-garden-button" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+                    <span>Reset</span>
+                </button>
+                <button id="save-image-button" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="ui-section">
+            <h2 class="ui-title">Tool Settings</h2>
+            <div>
+                <label for="color-picker" class="text-sm font-medium text-gray-300">Tool Color</label>
+                <input type="color" id="color-picker" value="#57534e">
+            </div>
+            <div>
+                <label for="rake-intensity-slider" class="text-sm font-medium text-gray-300">Rake Intensity</label>
+                <input type="range" id="rake-intensity-slider" min="0.05" max="1.5" step="0.01" value="0.4" class="w-full">
+            </div>
+             <div>
+                <label for="stone-size-slider" class="text-sm font-medium text-gray-300">Stone Size</label>
+                <input type="range" id="stone-size-slider" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full">
+            </div>
+            <div>
+                <label for="paint-size-slider" class="text-sm font-medium text-gray-300">Paint Brush Size</label>
+                <input type="range" id="paint-size-slider" min="0.1" max="3.0" step="0.05" value="1.5" class="w-full">
+            </div>
+            <div class="flex items-center justify-between">
+                <label for="camera-lock-toggle" class="text-sm font-medium text-gray-300">Lock Camera on Interact</label>
+                <input type="checkbox" id="camera-lock-toggle" class="form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-indigo-600 rounded focus:ring-indigo-500" checked>
+            </div>
+        </div>
+
+        <div class="ui-section">
+            <h2 class="ui-title">✨ AI Magic</h2>
+            <input type="text" id="mood-input" placeholder="Enter a mood (e.g., 'serenity')">
+            <button id="create-garden-button" class="tool-button !bg-green-700 !border-green-500 hover:!bg-green-600">Create from Mood</button>
+            <button id="name-garden-button" class="tool-button !bg-blue-700 !border-blue-500 hover:!bg-blue-600">Name This Garden</button>
+            <button id="fortune-button" class="tool-button !bg-purple-700 !border-purple-500 hover:!bg-purple-600">Read its Fortune</button>
+        </div>
+
+        <div class="text-center text-xs text-gray-500 pt-2 border-t border-gray-700/50">
+            App made by Will Alston
+        </div>
+    </div>
+    
+    <div id="fortune-modal">
+        <div id="fortune-content">
+            <h2 id="fortune-title" class="text-2xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">The Garden's Wisdom</h2>
+            <p id="fortune-text" class="text-lg mb-6">Reading the patterns in the sand...</p>
+            <button id="close-modal" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Basic Setup ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- Controls ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 5;
+        controls.maxDistance = 30;
+        controls.maxPolarAngle = Math.PI / 2.2;
+
+        camera.position.set(0, 15, 12);
+        controls.update();
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        directionalLight.position.set(10, 20, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        // --- The Zen Garden (Sand) ---
+        const sandSize = 20;
+        const segments = 100;
+        const sandGeometry = new THREE.PlaneGeometry(sandSize, sandSize, segments, segments);
+        
+        const sandTextureCanvas = document.createElement('canvas');
+        const sandTextureSize = 1024;
+        sandTextureCanvas.width = sandTextureSize;
+        sandTextureCanvas.height = sandTextureSize;
+        const sandTextureContext = sandTextureCanvas.getContext('2d');
+        const defaultSandColor = '#d2b48c';
+        sandTextureContext.fillStyle = defaultSandColor;
+        sandTextureContext.fillRect(0, 0, sandTextureSize, sandTextureSize);
+        const sandTexture = new THREE.CanvasTexture(sandTextureCanvas);
+
+        const sandMaterial = new THREE.MeshStandardMaterial({
+            map: sandTexture,
+            roughness: 0.8,
+            metalness: 0.2,
+        });
+        const sand = new THREE.Mesh(sandGeometry, sandMaterial);
+        sand.rotation.x = -Math.PI / 2;
+        sand.receiveShadow = true;
+        scene.add(sand);
+        
+        let originalVertices = sand.geometry.attributes.position.clone();
+        let deformationBuffer = new Float32Array(originalVertices.count);
+        let isPainted = false;
+
+        // --- Rocks ---
+        let rocks = [];
+        
+        function createRockMaps() {
+            const size = 128;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const context = canvas.getContext('2d');
+            const imageData = context.createImageData(size, size);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const c = Math.random() * 100 + 100;
+                data[i] = c; data[i+1] = c; data[i+2] = c; data[i+3] = 255;
+            }
+            context.putImageData(imageData, 0, 0);
+            
+            const normalMapCanvas = document.createElement('canvas');
+            normalMapCanvas.width = size;
+            normalMapCanvas.height = size;
+            const normalContext = normalMapCanvas.getContext('2d');
+            const normalImageData = normalContext.createImageData(size, size);
+            const normalData = normalImageData.data;
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const tx = data[((y * size + (x + 1) % size) * 4)] - data[((y * size + (x - 1 + size) % size) * 4)];
+                    const ty = data[((((y + 1) % size) * size + x) * 4)] - data[((((y - 1 + size) % size) * size + x) * 4)];
+                    const normal = new THREE.Vector3(-tx, -ty, 255).normalize();
+                    const index = (y * size + x) * 4;
+                    normalData[index] = (normal.x + 1) * 127.5;
+                    normalData[index + 1] = (normal.y + 1) * 127.5;
+                    normalData[index + 2] = (normal.z + 1) * 127.5;
+                    normalData[index + 3] = 255;
+                }
+            }
+            normalContext.putImageData(normalImageData, 0, 0);
+
+            return {
+                map: new THREE.CanvasTexture(canvas),
+                normalMap: new THREE.CanvasTexture(normalMapCanvas)
+            };
+        }
+        const rockMaps = createRockMaps();
+
+        function addRock(position, sizeFactor = 1, color = new THREE.Color(0x57534e)) {
+            const size = (Math.random() * 0.8 + 0.5) * sizeFactor;
+            const geometry = new THREE.IcosahedronGeometry(size, 5);
+            
+            const rockMaterial = new THREE.MeshStandardMaterial({
+                color: color,
+                roughness: 0.7,
+                metalness: 0.1,
+                map: rockMaps.map,
+                normalMap: rockMaps.normalMap
+            });
+
+            const rock = new THREE.Mesh(geometry, rockMaterial);
+            rock.position.set(position.x, size / 2, position.z);
+            rock.castShadow = true;
+            rock.receiveShadow = true;
+            scene.add(rock);
+            rocks.push(rock);
+        }
+
+        // --- Interaction ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let currentTool = 'rake';
+        let isInteracting = false;
+
+        // --- UI Elements ---
+        const allButtons = document.querySelectorAll('.tool-button');
+        const rakeToolBtn = document.getElementById('rake-tool');
+        const rockToolBtn = document.getElementById('rock-tool');
+        const paintToolBtn = document.getElementById('paint-tool');
+        const resetGardenBtn = document.getElementById('reset-garden-button');
+        const saveImageBtn = document.getElementById('save-image-button');
+        const fortuneButton = document.getElementById('fortune-button');
+        const nameGardenButton = document.getElementById('name-garden-button');
+        const createGardenButton = document.getElementById('create-garden-button');
+        const moodInput = document.getElementById('mood-input');
+        const fortuneModal = document.getElementById('fortune-modal');
+        const fortuneTitle = document.getElementById('fortune-title');
+        const fortuneText = document.getElementById('fortune-text');
+        const closeModalBtn = document.getElementById('close-modal');
+        const rakeIntensitySlider = document.getElementById('rake-intensity-slider');
+        const stoneSizeSlider = document.getElementById('stone-size-slider');
+        const paintSizeSlider = document.getElementById('paint-size-slider');
+        const cameraLockToggle = document.getElementById('camera-lock-toggle');
+        const colorPicker = document.getElementById('color-picker');
+
+        // --- Event Listeners ---
+        rakeToolBtn.addEventListener('click', () => { currentTool = 'rake'; updateActiveTool(); });
+        rockToolBtn.addEventListener('click', () => { currentTool = 'rock'; updateActiveTool(); });
+        paintToolBtn.addEventListener('click', () => { currentTool = 'paint'; updateActiveTool(); });
+        resetGardenBtn.addEventListener('click', clearGarden);
+        saveImageBtn.addEventListener('click', saveAsImage);
+        fortuneButton.addEventListener('click', getFortune);
+        nameGardenButton.addEventListener('click', nameGarden);
+        createGardenButton.addEventListener('click', createGardenFromMood);
+        closeModalBtn.addEventListener('click', () => fortuneModal.classList.remove('visible'));
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('resize', onWindowResize);
+
+        function updateActiveTool() {
+            rakeToolBtn.classList.toggle('active', currentTool === 'rake');
+            rockToolBtn.classList.toggle('active', currentTool === 'rock');
+            paintToolBtn.classList.toggle('active', currentTool === 'paint');
+        }
+
+        function onMouseDown(event) {
+            if (event.target.tagName !== 'CANVAS') return;
+            
+            if (currentTool !== 'rock' && cameraLockToggle.checked) {
+                controls.enabled = false;
+            }
+            
+            isInteracting = true;
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(sand);
+
+            if (intersects.length > 0) {
+                if (currentTool === 'rock') {
+                    const sizeFactor = parseFloat(stoneSizeSlider.value);
+                    const color = new THREE.Color(colorPicker.value);
+                    addRock(intersects[0].point, sizeFactor, color);
+                } else {
+                    handleInteraction(intersects[0].point, intersects[0].uv);
+                }
+            }
+        }
+
+        function onMouseUp() {
+            if (cameraLockToggle.checked) {
+                controls.enabled = true;
+            }
+            isInteracting = false; 
+        }
+
+        function onMouseMove(event) {
+            if (!isInteracting || currentTool === 'rock') return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(sand);
+
+            if (intersects.length > 0) {
+                handleInteraction(intersects[0].point, intersects[0].uv);
+            }
+        }
+
+        function handleInteraction(point, uv) {
+            if (currentTool === 'rake') {
+                const intensity = parseFloat(rakeIntensitySlider.value);
+                rakeSandAtPoint(intensity, point);
+            } else if (currentTool === 'paint') {
+                const color = colorPicker.value;
+                const brushSize = parseFloat(paintSizeSlider.value);
+                paintSandAtPoint(color, uv, brushSize);
+            }
+        }
+
+        function rakeSandAtPoint(strength, point, radius = 1.5) {
+            for (let i = 0; i < deformationBuffer.length; i++) {
+                const vertex = new THREE.Vector3().fromBufferAttribute(originalVertices, i);
+                const worldVertex = sand.localToWorld(vertex.clone());
+                const distance = worldVertex.distanceTo(point);
+                
+                if (distance < radius) {
+                    const influence = (1 - distance / radius);
+                    const wave = Math.sin(distance * 10) * influence * strength;
+                    deformationBuffer[i] = Math.max(deformationBuffer[i], wave);
+                }
+            }
+        }
+
+        function paintSandAtPoint(color, uv, radius = 1.5) {
+            const x = uv.x * sandTextureSize;
+            const y = (1 - uv.y) * sandTextureSize;
+            const scaledRadius = radius * 10;
+
+            sandTextureContext.fillStyle = color;
+            sandTextureContext.beginPath();
+            sandTextureContext.arc(x, y, scaledRadius, 0, Math.PI * 2);
+            sandTextureContext.fill();
+            sandTexture.needsUpdate = true;
+            isPainted = true;
+        }
+        
+        function applyDeformations() {
+            const positions = sand.geometry.attributes.position;
+            for (let i = 0; i < positions.count; i++) {
+                 const originalZ = originalVertices.getZ(i);
+                 positions.setZ(i, originalZ + deformationBuffer[i]);
+            }
+            positions.needsUpdate = true;
+            sand.geometry.computeVertexNormals();
+        }
+
+        function clearGarden() {
+            rocks.forEach(rock => scene.remove(rock));
+            rocks = [];
+            deformationBuffer.fill(0);
+            
+            sandTextureContext.fillStyle = defaultSandColor;
+            sandTextureContext.fillRect(0, 0, sandTextureSize, sandTextureSize);
+            sandTexture.needsUpdate = true;
+            isPainted = false;
+
+            applyDeformations();
+        }
+
+        function saveAsImage() {
+            renderer.render(scene, camera); // Ensure scene is rendered before capture
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'zen-garden.png';
+            link.click();
+        }
+
+        // --- AI Features ---
+        async function callGeminiAPI(prompt, jsonSchema = null) {
+            // FIX: Add a placeholder for the user's API key.
+            const apiKey = "AIzaSyChF8jfwVf0uqo1-A_vKVxo2wyLH0vX9Xg"; // <-- PASTE YOUR GOOGLE AI API KEY HERE
+
+            if (!apiKey) {
+                showModal("API Key Missing", "Please add your Google AI API key to the script to enable AI features.");
+                return null;
+            }
+
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+            };
+            if (jsonSchema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: jsonSchema,
+                };
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+            
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error("Invalid API response structure.");
+
+            return text;
+        }
+
+        function showModal(title, text) {
+            fortuneTitle.textContent = title;
+            fortuneText.textContent = text;
+            fortuneModal.classList.add('visible');
+        }
+        
+        function setLoadingState(isLoading) {
+            allButtons.forEach(b => b.disabled = isLoading);
+            moodInput.disabled = isLoading;
+            if (isLoading) {
+                createGardenButton.textContent = "Designing...";
+            } else {
+                createGardenButton.textContent = "Create from Mood";
+            }
+        }
+
+        function getGardenDescription() {
+            const rockCount = rocks.length;
+            let totalDeformation = 0;
+            for (let i = 0; i < deformationBuffer.length; i++) {
+                totalDeformation += Math.abs(deformationBuffer[i]);
+            }
+            const deformationLevel = totalDeformation > 10 ? (totalDeformation > 100 ? "deeply disturbed" : "gently raked") : "calm";
+            const colorDescription = isPainted ? "The sand is vividly colored." : "The sand is natural.";
+
+            return `The garden has ${rockCount} stones. The sand is ${deformationLevel}. ${colorDescription}`;
+        }
+
+        async function getFortune() {
+            setLoadingState(true);
+            showModal("The Garden's Wisdom", "Reading the patterns in the sand...");
+            try {
+                const fortune = await callGeminiAPI(`You are a wise zen master. Be poetic, insightful, and brief (2-3 sentences). A person has created a garden with this state: ${getGardenDescription()}. What wisdom or fortune does this reveal?`);
+                if (fortune) showModal("The Garden's Wisdom", fortune);
+            } catch (error) {
+                console.error("Error fetching fortune:", error);
+                showModal("An Error Occurred", "A cloud passes over the garden, obscuring its meaning. Please try again.");
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        async function nameGarden() {
+            setLoadingState(true);
+            showModal("Naming the Garden", "Contemplating a fitting name...");
+            try {
+                const schema = {
+                    type: "OBJECT",
+                    properties: {
+                        name: { type: "STRING" },
+                        explanation: { type: "STRING" }
+                    },
+                    required: ["name", "explanation"]
+                };
+                const responseText = await callGeminiAPI(`You are a poet naming a Japanese zen garden. Based on its state (${getGardenDescription()}), provide a poetic name and a one-sentence explanation for it.`, schema);
+                if (responseText) {
+                    const data = JSON.parse(responseText);
+                    showModal(data.name, data.explanation);
+                }
+            } catch (error) {
+                console.error("Error naming garden:", error);
+                showModal("An Error Occurred", "The garden's name remains elusive. Please try again.");
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        async function createGardenFromMood() {
+            const mood = moodInput.value.trim();
+            if (!mood) {
+                showModal("A Gentle Reminder", "Please enter a mood or concept to create a garden.");
+                return;
+            }
+            setLoadingState(true);
+            showModal("Creating from Mood", `Designing a garden that embodies "${mood}"...`);
+            try {
+                const prompt = `Design a zen garden that represents the mood "${mood}". Describe the number and placement of rocks, and the style of the sand pattern.`;
+                const schema = {
+                    type: "OBJECT",
+                    properties: {
+                        rock_placements: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    count: { type: "NUMBER" },
+                                    position: { type: "STRING", enum: ["center", "north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest"] },
+                                    size: { type: "STRING", enum: ["small", "medium", "large"] }
+                                }
+                            }
+                        },
+                        sand_pattern: {
+                            type: "OBJECT",
+                            properties: {
+                                type: { type: "STRING", enum: ["concentric_circles", "straight_lines", "calm", "gentle_waves", "chaotic_swirls"] },
+                                description: { type: "STRING" }
+                            }
+                        },
+                        interpretation: { type: "STRING" }
+                    },
+                    required: ["rock_placements", "sand_pattern", "interpretation"]
+                };
+                const responseText = await callGeminiAPI(prompt, schema);
+                if(responseText) {
+                    const design = JSON.parse(responseText);
+                    clearGarden();
+                    placeRocksFromAI(design.rock_placements);
+                    rakeSandFromAI(design.sand_pattern);
+                    showModal(`Garden of ${mood.charAt(0).toUpperCase() + mood.slice(1)}`, design.interpretation);
+                }
+            } catch (error) {
+                console.error("Error creating garden:", error);
+                showModal("An Error Occurred", "The vision for the garden is unclear. Please try a different mood.");
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        function placeRocksFromAI(placements) {
+            const positionMap = {
+                center: { x: 0, z: 0 },
+                north: { x: 0, z: -sandSize/4 },
+                south: { x: 0, z: sandSize/4 },
+                east: { x: sandSize/4, z: 0 },
+                west: { x: -sandSize/4, z: 0 },
+                northeast: { x: sandSize/4, z: -sandSize/4 },
+                northwest: { x: -sandSize/4, z: -sandSize/4 },
+                southeast: { x: sandSize/4, z: sandSize/4 },
+                southwest: { x: -sandSize/4, z: sandSize/4 },
+            };
+            const sizeMap = { small: 0.7, medium: 1, large: 1.5 };
+
+            placements.forEach(p => {
+                const basePos = positionMap[p.position] || {x:0, z:0};
+                for (let i = 0; i < p.count; i++) {
+                    const pos = new THREE.Vector3(
+                        basePos.x + (Math.random() - 0.5) * 4,
+                        0,
+                        basePos.z + (Math.random() - 0.5) * 4
+                    );
+                    addRock(pos, sizeMap[p.size] || 1);
+                }
+            });
+        }
+
+        function rakeSandFromAI(pattern) {
+            const center = new THREE.Vector3(0, 0, 0);
+            const intensity = parseFloat(rakeIntensitySlider.value);
+            switch(pattern.type) {
+                case 'concentric_circles':
+                    for (let r = 1; r < sandSize/2; r += 1.5) {
+                        for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
+                            const point = new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r);
+                            rakeSandAtPoint(intensity, point, 1);
+                        }
+                    }
+                    break;
+                case 'straight_lines':
+                    for (let z = -sandSize/2; z < sandSize/2; z += 1) {
+                        for (let x = -sandSize/2; x < sandSize/2; x += 0.2) {
+                            rakeSandAtPoint(intensity, new THREE.Vector3(x, 0, z), 0.8);
+                        }
+                    }
+                    break;
+                case 'gentle_waves':
+                     for (let z = -sandSize/2; z < sandSize/2; z += 1.5) {
+                        for (let x = -sandSize/2; x < sandSize/2; x += 0.2) {
+                            const waveX = x + Math.sin(z * 0.5) * 2;
+                            rakeSandAtPoint(intensity, new THREE.Vector3(waveX, 0, z), 1);
+                        }
+                    }
+                    break;
+                case 'chaotic_swirls':
+                    for(let i=0; i<500; i++) {
+                        const point = new THREE.Vector3(
+                            (Math.random() - 0.5) * sandSize,
+                            0,
+                            (Math.random() - 0.5) * sandSize
+                        );
+                        rakeSandAtPoint(intensity, point, 2);
+                    }
+                    break;
+                case 'calm':
+                default:
+                    // Do nothing, leave sand flat
+                    break;
+            }
+        }
+
+        // --- Animation Loop & Resizing ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            applyDeformations();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+        updateActiveTool(); // Set initial state
+    </script>
+</body>
+</html>
