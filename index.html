@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="google-adsense-account" content="ca-pub-2214618538122354">
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Interactive AI Zen Garden</title>
@@ -1113,6 +1111,119 @@
                     break;
             }
         }
+        
+        function placeSpecialObject(position, type, doSaveState = true) {
+            const objectType = type || objectSelect.value;
+            let newObject;
+
+            if (objectType === 'bonsai') {
+                const group = new THREE.Group();
+                const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9 });
+                const trunkGeom = new THREE.CylinderGeometry(0.1, 0.2, 1.5, 8);
+                const trunk = new THREE.Mesh(trunkGeom, trunkMaterial);
+                trunk.position.y = 0.75;
+                group.add(trunk);
+
+                const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.8 });
+                for(let i=0; i<5; i++) {
+                    const leafGeom = new THREE.IcosahedronGeometry(0.5, 0);
+                    const leaves = new THREE.Mesh(leafGeom, leafMaterial);
+                    leaves.position.set(Math.random() - 0.5, 1.5 + Math.random() * 0.5, Math.random() - 0.5);
+                    group.add(leaves);
+                }
+                newObject = group;
+            } else { // lantern
+                const group = new THREE.Group();
+                const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.6 });
+                const base = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.2, 16), baseMaterial);
+                group.add(base);
+
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 8), baseMaterial);
+                post.position.y = 0.85;
+                group.add(post);
+
+                const top = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.3, 16), baseMaterial);
+                top.position.y = 1.7;
+                group.add(top);
+                
+                newObject = group;
+            }
+            
+            newObject.position.copy(position);
+            newObject.userData.type = objectType;
+            scene.add(newObject);
+            specialObjects.push(newObject);
+            if (doSaveState) saveState();
+        }
+
+        // --- Environment Effects ---
+        let isNight = false;
+        let rainEffect = null;
+        let blossomEffect = null;
+
+        function toggleDayNight() {
+            isNight = !isNight;
+            dayNightBtn.textContent = isNight ? 'Night' : 'Day';
+            ambientLight.color.set(isNight ? 0x404080 : 0xffffff);
+            directionalLight.intensity = isNight ? 0.2 : 1.5;
+        }
+
+        function toggleRain() {
+            if (rainEffect) {
+                scene.remove(rainEffect);
+                rainEffect.geometry.dispose();
+                rainEffect.material.dispose();
+                rainEffect = null;
+            } else {
+                const vertices = [];
+                for (let i = 0; i < 1000; i++) {
+                    vertices.push(
+                        Math.random() * 30 - 15,
+                        Math.random() * 20,
+                        Math.random() * 30 - 15
+                    );
+                }
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                const material = new THREE.PointsMaterial({
+                    color: 0xaaaaee,
+                    size: 0.1,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                rainEffect = new THREE.Points(geometry, material);
+                scene.add(rainEffect);
+            }
+        }
+        
+        function toggleBlossoms() {
+            if (blossomEffect) {
+                scene.remove(blossomEffect);
+                blossomEffect.geometry.dispose();
+                blossomEffect.material.dispose();
+                blossomEffect = null;
+            } else {
+                const vertices = [];
+                for (let i = 0; i < 500; i++) {
+                    vertices.push(
+                        Math.random() * 30 - 15,
+                        Math.random() * 20,
+                        Math.random() * 30 - 15
+                    );
+                }
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                const material = new THREE.PointsMaterial({
+                    size: 0.1,
+                    color: 0xffc0cb,
+                    transparent: true,
+                    opacity: 0.7,
+                    blending: THREE.AdditiveBlending
+                });
+                blossomEffect = new THREE.Points(geometry, material);
+                scene.add(blossomEffect);
+            }
+        }
 
         // --- Animation Loop & Resizing ---
         function onWindowResize() {
@@ -1131,6 +1242,30 @@
                 rock.position.add(rock.velocity);
                 rock.velocity.multiplyScalar(0.95); // Damping
             });
+
+            // Environment effects
+            const time = Date.now() * 0.0005;
+            if (rainEffect) {
+                const positions = rainEffect.geometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    positions.setY(i, positions.getY(i) - 0.1);
+                    if (positions.getY(i) < 0) {
+                        positions.setY(i, 20);
+                    }
+                }
+                positions.needsUpdate = true;
+            }
+            if (blossomEffect) {
+                const positions = blossomEffect.geometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    positions.setY(i, positions.getY(i) - 0.02);
+                    positions.setX(i, positions.getX(i) + Math.sin(time + i) * 0.01);
+                    if (positions.getY(i) < 0) {
+                        positions.setY(i, 20);
+                    }
+                }
+                positions.needsUpdate = true;
+            }
             
             renderer.render(scene, camera);
         }
