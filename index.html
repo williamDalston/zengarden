@@ -182,9 +182,13 @@
 
     <div id="ui-container">
         <div class="ui-section">
-            <h2 class="ui-title">Manual Tools</h2>
-            <div class="grid grid-cols-2 gap-2">
-                <button id="rake-tool" class="tool-button active">
+            <h2 class="ui-title">Tools</h2>
+            <div class="grid grid-cols-3 gap-2">
+                 <button id="control-scene-button" class="tool-button active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10c0-4.42-2.87-8.17-7-9.58"/><path d="M15.54 21.53a10 10 0 0 0 5.1-12.81"/><path d="M3.37 10.09a10 10 0 0 0 17.26 0"/></svg>
+                    <span>Control</span>
+                </button>
+                <button id="rake-tool" class="tool-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5v14"/><path d="M12 5v14"/><path d="M9 5v14"/><path d="M5 5v14"/><path d="M2 9h20"/></svg>
                     <span>Rake</span>
                 </button>
@@ -201,8 +205,12 @@
                     <span>Build</span>
                 </button>
             </div>
-            <div class="grid grid-cols-3 gap-2">
-                 <button id="reset-garden-button" class="tool-button">
+            <div class="grid grid-cols-2 gap-2">
+                 <button id="undo-button" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13v-2.2a2 2 0 0 0-1.2-1.8L12 5.33a2 2 0 0 0-1.9 0L3.2 9A2 2 0 0 0 2 10.85V13"/><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"/><path d="M12 18v-6"/></svg>
+                    <span>Undo</span>
+                </button>
+                <button id="reset-garden-button" class="tool-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
                     <span>Reset</span>
                 </button>
@@ -223,7 +231,7 @@
                 <label for="color-picker" class="text-sm font-medium text-gray-300">Tool Color</label>
                 <input type="color" id="color-picker" value="#d2b48c">
             </div>
-            <div id="rake-settings" class="setting-group">
+            <div id="rake-settings" class="setting-group hidden">
                 <label for="rake-intensity-slider" class="text-sm font-medium text-gray-300">Rake Intensity</label>
                 <input type="range" id="rake-intensity-slider" min="0.05" max="1.5" step="0.01" value="0.4" class="w-full">
             </div>
@@ -238,27 +246,11 @@
              <div id="build-settings" class="setting-group hidden">
                 <label for="build-size-slider" class="text-sm font-medium text-gray-300">Build Size</label>
                 <input type="range" id="build-size-slider" min="0.1" max="1.0" step="0.05" value="0.3" class="w-full">
-            </div>
-            <div class="flex items-center justify-between">
-                <label for="camera-lock-toggle" class="text-sm font-medium text-gray-300">Lock Camera on Interact</label>
-                <input type="checkbox" id="camera-lock-toggle" class="form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-indigo-600 rounded focus:ring-indigo-500" checked>
+                <label for="build-height-slider" class="text-sm font-medium text-gray-300 mt-2">Build Height</label>
+                <input type="range" id="build-height-slider" min="0" max="10" step="0.1" value="0" class="w-full">
             </div>
         </div>
         
-        <div class="ui-section">
-            <h2 class="ui-title">👑 Premium Features</h2>
-            <div class="grid grid-cols-2 gap-2">
-                <button id="cherry-blossom-button" class="tool-button !bg-pink-700/50 !border-pink-500/50 hover:!bg-pink-600/70">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 6.5a3 3 0 1 1 3 3M9 6.5v1m-3.5 2a3 3 0 1 0-3 3m3-3h-1m10.5 2a3 3 0 1 1 3 3m-3-3h-1m-3.5-2a3 3 0 1 0-3 3m3-3v1"/></svg>
-                    <span>Blossoms</span>
-                </button>
-                <button id="fog-button" class="tool-button !bg-gray-500/50 !border-gray-400/50 hover:!bg-gray-500/70">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a4.6 4.6 0 1 0-8.6 2H4a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2.4 2.4 0 0 0-2-2Z"/><path d="M16 12a4.6 4.6 0 1 0-8.6 2H2a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2a2.4 2.4 0 0 0-2-2Z"/><path d="M12.5 9A4.5 4.5 0 0 0 8 4.5H6.27a2.5 2.5 0 0 0-1.77 4.27"/></svg>
-                    <span>Fog</span>
-                </button>
-            </div>
-        </div>
-
         <div class="ui-section">
             <h2 class="ui-title">✨ AI Magic</h2>
             <input type="text" id="mood-input" placeholder="Enter a mood (e.g., 'serenity')">
@@ -288,9 +280,9 @@
                     <button id="copy-link-button" class="bg-indigo-600 text-white px-3 py-1 rounded-r-md text-xs">Copy</button>
                 </div>
             </div>
-             <div id="premium-instructions" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
-                 <p class="mb-2">This is a premium feature. In a real app, clicking the button below would take you to a payment page.</p>
-                 <a href="https://github.com/sponsors" target="_blank" class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors mt-4">Unlock Premium (Example)</a>
+             <div id="ad-simulation" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
+                 <p class="mb-2">In a real app, an ad would play now. This unlocks the AI feature.</p>
+                 <div id="ad-timer" class="text-center text-2xl font-bold">5</div>
             </div>
             <button id="close-modal" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors mt-6">Close</button>
         </div>
@@ -317,7 +309,7 @@
         controls.maxDistance = 30;
         controls.maxPolarAngle = Math.PI / 2.2;
 
-        camera.position.set(0, 15, 12);
+        camera.position.set(0, 10, 8); // Start more zoomed in
         controls.update();
 
         // --- Lighting ---
@@ -423,64 +415,36 @@
             rock.position.set(position.x, size / 2, position.z);
             rock.castShadow = true;
             rock.receiveShadow = true;
+            rock.velocity = new THREE.Vector3(); // For physics
             scene.add(rock);
             rocks.push(rock);
+            saveState();
         }
         
-        // --- Premium Features ---
-        let blossomEffect = null;
-        let isFogActive = false;
-
-        function toggleCherryBlossoms(enable) {
-            if (enable && !blossomEffect) {
-                const vertices = [];
-                for (let i = 0; i < 500; i++) {
-                    const x = Math.random() * 30 - 15;
-                    const y = Math.random() * 20;
-                    const z = Math.random() * 30 - 15;
-                    vertices.push(x, y, z);
-                }
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-                const material = new THREE.PointsMaterial({
-                    size: 0.1,
-                    color: 0xffc0cb,
-                    transparent: true,
-                    opacity: 0.7,
-                    blending: THREE.AdditiveBlending
-                });
-                blossomEffect = new THREE.Points(geometry, material);
-                scene.add(blossomEffect);
-            } else if (!enable && blossomEffect) {
-                scene.remove(blossomEffect);
-                blossomEffect.geometry.dispose();
-                blossomEffect.material.dispose();
-                blossomEffect = null;
-            }
-        }
-
-        function toggleFog(enable) {
-            if (enable && !isFogActive) {
-                scene.fog = new THREE.Fog(0x111827, 10, 40);
-                isFogActive = true;
-            } else if (!enable && isFogActive) {
-                scene.fog = null;
-                isFogActive = false;
-            }
-        }
-
         // --- Interaction ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        let currentTool = 'rake';
+        let currentTool = 'control';
         let isInteracting = false;
         
         let buildPath = [];
         let buildLinePreview = null;
         const buildPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        const buildHelper = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100),
+            new THREE.MeshBasicMaterial({ color: 0x8888ff, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
+        );
+        buildHelper.rotation.x = -Math.PI / 2;
+        buildHelper.visible = false;
+        scene.add(buildHelper);
+
+        // --- History for Undo ---
+        let actionHistory = [];
+        const MAX_HISTORY = 20;
 
         // --- UI Elements ---
         const allButtons = document.querySelectorAll('.tool-button');
+        const controlSceneBtn = document.getElementById('control-scene-button');
         const rakeToolBtn = document.getElementById('rake-tool');
         const rockToolBtn = document.getElementById('rock-tool');
         const paintToolBtn = document.getElementById('paint-tool');
@@ -488,8 +452,7 @@
         const resetGardenBtn = document.getElementById('reset-garden-button');
         const saveImageBtn = document.getElementById('save-image-button');
         const shareBtn = document.getElementById('share-button');
-        const cherryBlossomBtn = document.getElementById('cherry-blossom-button');
-        const fogBtn = document.getElementById('fog-button');
+        const undoBtn = document.getElementById('undo-button');
         const fortuneButton = document.getElementById('fortune-button');
         const nameGardenButton = document.getElementById('name-garden-button');
         const createGardenButton = document.getElementById('create-garden-button');
@@ -498,7 +461,8 @@
         const infoModalTitle = document.getElementById('info-modal-title');
         const infoModalText = document.getElementById('info-modal-text');
         const shareInstructions = document.getElementById('share-instructions');
-        const premiumInstructions = document.getElementById('premium-instructions');
+        const adSimulation = document.getElementById('ad-simulation');
+        const adTimer = document.getElementById('ad-timer');
         const shareUrlInput = document.getElementById('share-url');
         const copyLinkBtn = document.getElementById('copy-link-button');
         const closeModalBtn = document.getElementById('close-modal');
@@ -506,10 +470,11 @@
         const stoneSizeSlider = document.getElementById('stone-size-slider');
         const paintSizeSlider = document.getElementById('paint-size-slider');
         const buildSizeSlider = document.getElementById('build-size-slider');
-        const cameraLockToggle = document.getElementById('camera-lock-toggle');
+        const buildHeightSlider = document.getElementById('build-height-slider');
         const colorPicker = document.getElementById('color-picker');
 
         // --- Event Listeners ---
+        controlSceneBtn.addEventListener('click', () => { currentTool = 'control'; updateActiveTool(); });
         rakeToolBtn.addEventListener('click', () => { currentTool = 'rake'; updateActiveTool(); });
         rockToolBtn.addEventListener('click', () => { currentTool = 'rock'; updateActiveTool(); });
         paintToolBtn.addEventListener('click', () => { currentTool = 'paint'; updateActiveTool(); });
@@ -517,13 +482,16 @@
         resetGardenBtn.addEventListener('click', clearGarden);
         saveImageBtn.addEventListener('click', saveAsImage);
         shareBtn.addEventListener('click', shareGarden);
-        cherryBlossomBtn.addEventListener('click', () => previewPremiumFeature('blossoms'));
-        fogBtn.addEventListener('click', () => previewPremiumFeature('fog'));
+        undoBtn.addEventListener('click', undo);
         copyLinkBtn.addEventListener('click', copyShareLink);
-        fortuneButton.addEventListener('click', getFortune);
-        nameGardenButton.addEventListener('click', nameGarden);
-        createGardenButton.addEventListener('click', createGardenFromMood);
+        fortuneButton.addEventListener('click', () => runAIWithAd(getFortune));
+        nameGardenButton.addEventListener('click', () => runAIWithAd(nameGarden));
+        createGardenButton.addEventListener('click', () => runAIWithAd(createGardenFromMood));
         closeModalBtn.addEventListener('click', () => infoModal.classList.remove('visible'));
+        buildHeightSlider.addEventListener('input', () => {
+            buildHelper.position.y = parseFloat(buildHeightSlider.value);
+            buildPlane.constant = -buildHelper.position.y;
+        });
         
         window.addEventListener('mousedown', onInteractionStart);
         window.addEventListener('mouseup', onInteractionEnd);
@@ -534,11 +502,15 @@
         window.addEventListener('resize', onWindowResize);
 
         function updateActiveTool() {
+            controlSceneBtn.classList.toggle('active', currentTool === 'control');
             rakeToolBtn.classList.toggle('active', currentTool === 'rake');
             rockToolBtn.classList.toggle('active', currentTool === 'rock');
             paintToolBtn.classList.toggle('active', currentTool === 'paint');
             buildToolBtn.classList.toggle('active', currentTool === 'build');
             
+            controls.enabled = currentTool === 'control';
+            buildHelper.visible = currentTool === 'build';
+
             document.getElementById('rake-settings').style.display = currentTool === 'rake' ? 'block' : 'none';
             document.getElementById('rock-settings').style.display = currentTool === 'rock' ? 'block' : 'none';
             document.getElementById('paint-settings').style.display = currentTool === 'paint' ? 'block' : 'none';
@@ -560,12 +532,8 @@
         }
 
         function onInteractionStart(event) {
-            if (event.target.tagName !== 'CANVAS') return;
+            if (event.target.tagName !== 'CANVAS' || currentTool === 'control') return;
             event.preventDefault();
-
-            if (currentTool !== 'rock' && cameraLockToggle.checked) {
-                controls.enabled = false;
-            }
             
             isInteracting = true;
             
@@ -573,29 +541,33 @@
             mouse.x = coords.x;
             mouse.y = coords.y;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([sand, ...rocks, ...sandTubes]);
-
-            if (intersects.length > 0) {
-                if (currentTool === 'rock') {
-                    const sizeFactor = parseFloat(stoneSizeSlider.value);
-                    const color = new THREE.Color(colorPicker.value);
-                    addRock(intersects[0].point, sizeFactor, color);
-                } else if (currentTool === 'build') {
-                    buildPath = [intersects[0].point.clone()];
+            
+            if (currentTool === 'build') {
+                const targetPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(buildPlane, targetPoint);
+                if (targetPoint) {
+                    buildPath = [targetPoint.clone()];
                 }
-                else {
-                    handleInteraction(intersects[0].point, intersects[0].object === sand ? intersects[0].uv : null);
+            } else {
+                const intersects = raycaster.intersectObjects([sand, ...rocks, ...sandTubes], true);
+                if (intersects.length > 0) {
+                    if (currentTool === 'rock') {
+                        const sizeFactor = parseFloat(stoneSizeSlider.value);
+                        const color = new THREE.Color(colorPicker.value);
+                        addRock(intersects[0].point, sizeFactor, color);
+                    } else {
+                        saveState();
+                        handleInteraction(intersects[0].point, intersects[0].object === sand ? intersects[0].uv : null);
+                    }
                 }
             }
         }
 
         function onInteractionEnd() {
-            if (cameraLockToggle.checked) {
-                controls.enabled = true;
-            }
             isInteracting = false; 
             
             if (currentTool === 'build' && buildPath.length > 1) {
+                saveState();
                 createSandTube();
             }
             buildPath = [];
@@ -604,7 +576,7 @@
         }
 
         function onInteractionMove(event) {
-            if (!isInteracting || currentTool === 'rock') return;
+            if (!isInteracting || currentTool === 'control' || currentTool === 'rock') return;
             event.preventDefault();
 
             const coords = getPointerCoords(event);
@@ -649,9 +621,10 @@
         }
 
         function createSandTube() {
+            if (buildPath.length < 2) return;
             const curve = new THREE.CatmullRomCurve3(buildPath);
             const radius = parseFloat(buildSizeSlider.value);
-            const geometry = new THREE.TubeGeometry(curve, 64, radius, 8, false);
+            const geometry = new THREE.TubeGeometry(curve, 64, radius, 12, false);
             const material = new THREE.MeshStandardMaterial({
                 color: colorPicker.value,
                 map: rockMaps.map,
@@ -665,7 +638,8 @@
             sandTubes.push(tube);
         }
 
-        function rakeSandAtPoint(strength, point, radius = 1.5) {
+        function rakeSandAtPoint(strength, point, radius = 0.75) {
+            // Rake sand
             for (let i = 0; i < deformationBuffer.length; i++) {
                 const vertex = new THREE.Vector3().fromBufferAttribute(originalVertices, i);
                 const worldVertex = sand.localToWorld(vertex.clone());
@@ -677,6 +651,28 @@
                     deformationBuffer[i] = Math.max(deformationBuffer[i], wave);
                 }
             }
+
+            // Push rocks
+            rocks.forEach(rock => {
+                const distance = rock.position.distanceTo(point);
+                if (distance < radius + rock.geometry.parameters.radius) {
+                    const direction = new THREE.Vector3().subVectors(rock.position, point).normalize();
+                    rock.velocity.add(direction.multiplyScalar(strength * 0.1));
+                }
+            });
+
+            // Destroy sand tubes
+            const tubesToRemove = [];
+            sandTubes.forEach(tube => {
+                 const distance = tube.geometry.boundingSphere.center.clone().applyMatrix4(tube.matrixWorld).distanceTo(point);
+                 if (distance < tube.geometry.boundingSphere.radius + radius) {
+                     tubesToRemove.push(tube);
+                 }
+            });
+            tubesToRemove.forEach(tube => {
+                scene.remove(tube);
+                sandTubes = sandTubes.filter(t => t !== tube);
+            });
         }
 
         function paintSandAtPoint(color, uv, radius = 1.5) {
@@ -716,6 +712,8 @@
             isPainted = false;
 
             applyDeformations();
+            actionHistory = [];
+            updateUndoButton();
         }
 
         function saveAsImage() {
@@ -743,6 +741,60 @@
             document.body.removeChild(dummy);
             copyLinkBtn.textContent = "Copied!";
             setTimeout(() => { copyLinkBtn.textContent = "Copy"; }, 2000);
+        }
+
+        // --- History Management ---
+        function saveState() {
+            const state = {
+                rocks: rocks.map(r => ({ position: r.position.clone(), material: r.material.clone() })),
+                sandTubes: sandTubes.map(t => ({ geometry: t.geometry.clone(), material: t.material.clone(), position: t.position.clone(), quaternion: t.quaternion.clone() })),
+                deformationBuffer: new Float32Array(deformationBuffer),
+                sandTexture: sandTextureContext.getImageData(0, 0, sandTextureSize, sandTextureSize),
+                isPainted: isPainted
+            };
+            actionHistory.push(state);
+            if (actionHistory.length > MAX_HISTORY) {
+                actionHistory.shift();
+            }
+            updateUndoButton();
+        }
+
+        function undo() {
+            if (actionHistory.length === 0) return;
+            const state = actionHistory.pop();
+            
+            clearGarden(); // Clear current state without clearing history
+
+            // Restore rocks
+            state.rocks.forEach(rockData => {
+                const geometry = rocks.length > 0 ? rocks[0].geometry : new THREE.IcosahedronGeometry(1, 5); // Placeholder
+                const rock = new THREE.Mesh(geometry, rockData.material);
+                rock.position.copy(rockData.position);
+                rock.velocity = new THREE.Vector3();
+                scene.add(rock);
+                rocks.push(rock);
+            });
+
+            // Restore sand tubes
+            state.sandTubes.forEach(tubeData => {
+                const tube = new THREE.Mesh(tubeData.geometry, tubeData.material);
+                tube.position.copy(tubeData.position);
+                tube.quaternion.copy(tubeData.quaternion);
+                scene.add(tube);
+                sandTubes.push(tube);
+            });
+            
+            deformationBuffer = new Float32Array(state.deformationBuffer);
+            sandTextureContext.putImageData(state.sandTexture, 0, 0);
+            sandTexture.needsUpdate = true;
+            isPainted = state.isPainted;
+            
+            applyDeformations();
+            updateUndoButton();
+        }
+
+        function updateUndoButton() {
+            undoBtn.disabled = actionHistory.length === 0;
         }
 
         // --- AI Features ---
@@ -785,32 +837,31 @@
             infoModalText.textContent = text;
             
             shareInstructions.classList.add('hidden');
-            premiumInstructions.classList.add('hidden');
+            adSimulation.classList.add('hidden');
 
             if (type === 'share') {
                 shareInstructions.classList.remove('hidden');
                 shareUrlInput.value = window.location.href;
-            } else if (type === 'premium') {
-                premiumInstructions.classList.remove('hidden');
+            } else if (type === 'ad') {
+                adSimulation.classList.remove('hidden');
             }
             
             infoModal.classList.add('visible');
         }
 
-        function previewPremiumFeature(feature) {
-            if (feature === 'blossoms') {
-                toggleCherryBlossoms(true);
-                setTimeout(() => {
-                    toggleCherryBlossoms(false);
-                    showModal('Unlock Cherry Blossoms', 'This is a premium feature.', 'premium');
-                }, 5000);
-            } else if (feature === 'fog') {
-                toggleFog(true);
-                setTimeout(() => {
-                    toggleFog(false);
-                    showModal('Unlock Misty Fog', 'This is a premium feature.', 'premium');
-                }, 5000);
-            }
+        function runAIWithAd(aiFunction) {
+            showModal("Watch an Ad", "Watch a short ad to use this AI feature.", 'ad');
+            let countdown = 3;
+            adTimer.textContent = countdown;
+            const interval = setInterval(() => {
+                countdown--;
+                adTimer.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    infoModal.classList.remove('visible');
+                    aiFunction();
+                }
+            }, 1000);
         }
         
         function setLoadingState(isLoading) {
@@ -1010,18 +1061,19 @@
             controls.update();
             applyDeformations();
             
-            if(blossomEffect) {
-                blossomEffect.position.y -= 0.01;
-                if(blossomEffect.position.y < -10) {
-                    blossomEffect.position.y = 10;
-                }
-            }
-
+            // Rock physics
+            rocks.forEach(rock => {
+                rock.position.add(rock.velocity);
+                rock.velocity.multiplyScalar(0.95); // Damping
+            });
+            
             renderer.render(scene, camera);
         }
 
         animate();
         updateActiveTool(); // Set initial state
+        updateUndoButton();
     </script>
 </body>
 </html>
+"
