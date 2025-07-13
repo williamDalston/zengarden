@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Interactive AI Zen Garden</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -20,31 +20,33 @@
             overflow: hidden;
             background-color: #111827;
             font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
         }
         canvas {
             display: block;
         }
         #ui-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             z-index: 10;
             display: flex;
-            flex-direction: column;
             gap: 16px;
             background-color: rgba(17, 24, 39, 0.85);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(55, 65, 81, 0.5);
-            width: 280px;
-            /* FIX: Make the UI panel scrollable on smaller screens */
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
+            padding: 12px;
+            border-top: 1px solid rgba(55, 65, 81, 0.5);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .ui-section {
             display: flex;
             flex-direction: column;
             gap: 10px;
+            padding: 10px;
+            background-color: rgba(31, 41, 55, 0.5);
+            border-radius: 12px;
+            min-width: 240px;
         }
         .ui-title {
             font-weight: 600;
@@ -98,8 +100,9 @@
         #fortune-content {
             background-color: #1f2937;
             color: #e5e7eb;
-            padding: 40px;
+            padding: 24px;
             border-radius: 12px;
+            width: 90%;
             max-width: 500px;
             text-align: center;
             border: 1px solid #4b5563;
@@ -156,6 +159,21 @@
             border: 1px solid #4b5563;
             border-radius: 8px;
         }
+        /* Desktop layout */
+        @media (min-width: 768px) {
+            #ui-container {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                bottom: auto;
+                width: 280px;
+                flex-direction: column;
+                overflow-x: hidden;
+                overflow-y: auto;
+                border-top: none;
+                border-left: 1px solid rgba(55, 65, 81, 0.5);
+            }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -166,7 +184,7 @@
     <div id="ui-container">
         <div class="ui-section">
             <h2 class="ui-title">Manual Tools</h2>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 gap-2">
                 <button id="rake-tool" class="tool-button active">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5v14"/><path d="M12 5v14"/><path d="M9 5v14"/><path d="M5 5v14"/><path d="M2 9h20"/></svg>
                     <span>Rake</span>
@@ -179,8 +197,12 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M16 4h-4a4 4 0 1 0 0 8h4"/><path d="M16 4v4"/><path d="M20 8v4"/></svg>
                     <span>Paint</span>
                 </button>
+                 <button id="build-tool" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span>Build</span>
+                </button>
             </div>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-3 gap-2">
                  <button id="reset-garden-button" class="tool-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
                     <span>Reset</span>
@@ -189,6 +211,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     <span>Save</span>
                 </button>
+                <button id="share-button" class="tool-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    <span>Share</span>
+                </button>
             </div>
         </div>
 
@@ -196,7 +222,7 @@
             <h2 class="ui-title">Tool Settings</h2>
             <div>
                 <label for="color-picker" class="text-sm font-medium text-gray-300">Tool Color</label>
-                <input type="color" id="color-picker" value="#57534e">
+                <input type="color" id="color-picker" value="#d2b48c">
             </div>
             <div>
                 <label for="rake-intensity-slider" class="text-sm font-medium text-gray-300">Rake Intensity</label>
@@ -209,6 +235,10 @@
             <div>
                 <label for="paint-size-slider" class="text-sm font-medium text-gray-300">Paint Brush Size</label>
                 <input type="range" id="paint-size-slider" min="0.1" max="3.0" step="0.05" value="1.5" class="w-full">
+            </div>
+             <div>
+                <label for="build-size-slider" class="text-sm font-medium text-gray-300">Build Size</label>
+                <input type="range" id="build-size-slider" min="0.1" max="1.0" step="0.05" value="0.3" class="w-full">
             </div>
             <div class="flex items-center justify-between">
                 <label for="camera-lock-toggle" class="text-sm font-medium text-gray-300">Lock Camera on Interact</label>
@@ -224,7 +254,7 @@
             <button id="fortune-button" class="tool-button !bg-purple-700 !border-purple-500 hover:!bg-purple-600">Read its Fortune</button>
         </div>
 
-        <div class="text-center text-xs text-gray-500 pt-2 border-t border-gray-700/50">
+        <div class="ui-section text-center text-xs text-gray-500 pt-2 border-t border-gray-700/50">
             App made by Will Alston
         </div>
     </div>
@@ -232,8 +262,20 @@
     <div id="fortune-modal">
         <div id="fortune-content">
             <h2 id="fortune-title" class="text-2xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">The Garden's Wisdom</h2>
-            <p id="fortune-text" class="text-lg mb-6">Reading the patterns in the sand...</p>
-            <button id="close-modal" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">Close</button>
+            <p id="fortune-text" class="text-lg mb-6 leading-relaxed">Reading the patterns in the sand...</p>
+            <div id="share-instructions" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
+                <p class="mb-2">To share on Instagram:</p>
+                <ol class="list-decimal list-inside space-y-1">
+                    <li>Open Instagram & create a new Story.</li>
+                    <li>Select the image of your garden from your camera roll.</li>
+                    <li>Use the "Link" sticker and paste this URL:</li>
+                </ol>
+                <div class="flex items-center mt-2">
+                    <input type="text" id="share-url" readonly class="bg-gray-700 text-gray-300 text-xs p-1 rounded-l-md w-full">
+                    <button id="copy-link-button" class="bg-indigo-600 text-white px-3 py-1 rounded-r-md text-xs">Copy</button>
+                </div>
+            </div>
+            <button id="close-modal" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors mt-6">Close</button>
         </div>
     </div>
 
@@ -301,8 +343,9 @@
         let deformationBuffer = new Float32Array(originalVertices.count);
         let isPainted = false;
 
-        // --- Rocks ---
+        // --- Rocks & Sand Structures ---
         let rocks = [];
+        let sandTubes = [];
         
         function createRockMaps() {
             const size = 128;
@@ -372,14 +415,20 @@
         const mouse = new THREE.Vector2();
         let currentTool = 'rake';
         let isInteracting = false;
+        
+        let buildPath = [];
+        let buildLinePreview = null;
+        const buildPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
         // --- UI Elements ---
         const allButtons = document.querySelectorAll('.tool-button');
         const rakeToolBtn = document.getElementById('rake-tool');
         const rockToolBtn = document.getElementById('rock-tool');
         const paintToolBtn = document.getElementById('paint-tool');
+        const buildToolBtn = document.getElementById('build-tool');
         const resetGardenBtn = document.getElementById('reset-garden-button');
         const saveImageBtn = document.getElementById('save-image-button');
+        const shareBtn = document.getElementById('share-button');
         const fortuneButton = document.getElementById('fortune-button');
         const nameGardenButton = document.getElementById('name-garden-button');
         const createGardenButton = document.getElementById('create-garden-button');
@@ -387,10 +436,14 @@
         const fortuneModal = document.getElementById('fortune-modal');
         const fortuneTitle = document.getElementById('fortune-title');
         const fortuneText = document.getElementById('fortune-text');
+        const shareInstructions = document.getElementById('share-instructions');
+        const shareUrlInput = document.getElementById('share-url');
+        const copyLinkBtn = document.getElementById('copy-link-button');
         const closeModalBtn = document.getElementById('close-modal');
         const rakeIntensitySlider = document.getElementById('rake-intensity-slider');
         const stoneSizeSlider = document.getElementById('stone-size-slider');
         const paintSizeSlider = document.getElementById('paint-size-slider');
+        const buildSizeSlider = document.getElementById('build-size-slider');
         const cameraLockToggle = document.getElementById('camera-lock-toggle');
         const colorPicker = document.getElementById('color-picker');
 
@@ -398,65 +451,111 @@
         rakeToolBtn.addEventListener('click', () => { currentTool = 'rake'; updateActiveTool(); });
         rockToolBtn.addEventListener('click', () => { currentTool = 'rock'; updateActiveTool(); });
         paintToolBtn.addEventListener('click', () => { currentTool = 'paint'; updateActiveTool(); });
+        buildToolBtn.addEventListener('click', () => { currentTool = 'build'; updateActiveTool(); });
         resetGardenBtn.addEventListener('click', clearGarden);
         saveImageBtn.addEventListener('click', saveAsImage);
+        shareBtn.addEventListener('click', shareGarden);
+        copyLinkBtn.addEventListener('click', copyShareLink);
         fortuneButton.addEventListener('click', getFortune);
         nameGardenButton.addEventListener('click', nameGarden);
         createGardenButton.addEventListener('click', createGardenFromMood);
         closeModalBtn.addEventListener('click', () => fortuneModal.classList.remove('visible'));
-        window.addEventListener('mousedown', onMouseDown);
-        window.addEventListener('mouseup', onMouseUp);
-        window.addEventListener('mousemove', onMouseMove);
+        
+        // Touch and Mouse event listeners
+        window.addEventListener('mousedown', onInteractionStart);
+        window.addEventListener('mouseup', onInteractionEnd);
+        window.addEventListener('mousemove', onInteractionMove);
+        window.addEventListener('touchstart', onInteractionStart, { passive: false });
+        window.addEventListener('touchend', onInteractionEnd);
+        window.addEventListener('touchmove', onInteractionMove, { passive: false });
         window.addEventListener('resize', onWindowResize);
 
         function updateActiveTool() {
             rakeToolBtn.classList.toggle('active', currentTool === 'rake');
             rockToolBtn.classList.toggle('active', currentTool === 'rock');
             paintToolBtn.classList.toggle('active', currentTool === 'paint');
+            buildToolBtn.classList.toggle('active', currentTool === 'build');
         }
 
-        function onMouseDown(event) {
+        function getPointerCoords(event) {
+            if (event.touches && event.touches.length > 0) {
+                return {
+                    x: (event.touches[0].clientX / window.innerWidth) * 2 - 1,
+                    y: -(event.touches[0].clientY / window.innerHeight) * 2 + 1,
+                };
+            } else {
+                return {
+                    x: (event.clientX / window.innerWidth) * 2 - 1,
+                    y: -(event.clientY / window.innerHeight) * 2 + 1,
+                };
+            }
+        }
+
+        function onInteractionStart(event) {
             if (event.target.tagName !== 'CANVAS') return;
-            
+            event.preventDefault();
+
             if (currentTool !== 'rock' && cameraLockToggle.checked) {
                 controls.enabled = false;
             }
             
             isInteracting = true;
             
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const coords = getPointerCoords(event);
+            mouse.x = coords.x;
+            mouse.y = coords.y;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(sand);
+            const intersects = raycaster.intersectObjects([sand, ...rocks, ...sandTubes]);
 
             if (intersects.length > 0) {
                 if (currentTool === 'rock') {
                     const sizeFactor = parseFloat(stoneSizeSlider.value);
                     const color = new THREE.Color(colorPicker.value);
                     addRock(intersects[0].point, sizeFactor, color);
-                } else {
-                    handleInteraction(intersects[0].point, intersects[0].uv);
+                } else if (currentTool === 'build') {
+                    buildPath = [intersects[0].point.clone()];
+                }
+                else {
+                    handleInteraction(intersects[0].point, intersects[0].object === sand ? intersects[0].uv : null);
                 }
             }
         }
 
-        function onMouseUp() {
+        function onInteractionEnd() {
             if (cameraLockToggle.checked) {
                 controls.enabled = true;
             }
             isInteracting = false; 
+            
+            if (currentTool === 'build' && buildPath.length > 1) {
+                createSandTube();
+            }
+            buildPath = [];
+            if(buildLinePreview) scene.remove(buildLinePreview);
+            buildLinePreview = null;
         }
 
-        function onMouseMove(event) {
+        function onInteractionMove(event) {
             if (!isInteracting || currentTool === 'rock') return;
+            event.preventDefault();
 
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const coords = getPointerCoords(event);
+            mouse.x = coords.x;
+            mouse.y = coords.y;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(sand);
-
-            if (intersects.length > 0) {
-                handleInteraction(intersects[0].point, intersects[0].uv);
+            
+            if (currentTool === 'build') {
+                 const targetPoint = new THREE.Vector3();
+                 raycaster.ray.intersectPlane(buildPlane, targetPoint);
+                 if (targetPoint) {
+                    buildPath.push(targetPoint.clone());
+                    updateBuildPreview();
+                 }
+            } else {
+                const intersects = raycaster.intersectObject(sand);
+                if (intersects.length > 0) {
+                    handleInteraction(intersects[0].point, intersects[0].uv);
+                }
             }
         }
 
@@ -464,11 +563,38 @@
             if (currentTool === 'rake') {
                 const intensity = parseFloat(rakeIntensitySlider.value);
                 rakeSandAtPoint(intensity, point);
-            } else if (currentTool === 'paint') {
+            } else if (currentTool === 'paint' && uv) {
                 const color = colorPicker.value;
                 const brushSize = parseFloat(paintSizeSlider.value);
                 paintSandAtPoint(color, uv, brushSize);
             }
+        }
+        
+        function updateBuildPreview() {
+            if (buildLinePreview) {
+                scene.remove(buildLinePreview);
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(buildPath);
+            const material = new THREE.LineBasicMaterial({ color: colorPicker.value, transparent: true, opacity: 0.5 });
+            buildLinePreview = new THREE.Line(geometry, material);
+            scene.add(buildLinePreview);
+        }
+
+        function createSandTube() {
+            const curve = new THREE.CatmullRomCurve3(buildPath);
+            const radius = parseFloat(buildSizeSlider.value);
+            const geometry = new THREE.TubeGeometry(curve, 64, radius, 8, false);
+            const material = new THREE.MeshStandardMaterial({
+                color: colorPicker.value,
+                map: rockMaps.map,
+                normalMap: rockMaps.normalMap,
+                roughness: 0.8
+            });
+            const tube = new THREE.Mesh(geometry, material);
+            tube.castShadow = true;
+            tube.receiveShadow = true;
+            scene.add(tube);
+            sandTubes.push(tube);
         }
 
         function rakeSandAtPoint(strength, point, radius = 1.5) {
@@ -511,6 +637,9 @@
         function clearGarden() {
             rocks.forEach(rock => scene.remove(rock));
             rocks = [];
+            sandTubes.forEach(tube => scene.remove(tube));
+            sandTubes = [];
+
             deformationBuffer.fill(0);
             
             sandTextureContext.fillStyle = defaultSandColor;
@@ -522,18 +651,35 @@
         }
 
         function saveAsImage() {
-            renderer.render(scene, camera); // Ensure scene is rendered before capture
+            renderer.render(scene, camera);
             const dataURL = renderer.domElement.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = 'zen-garden.png';
             link.click();
+            return dataURL;
+        }
+        
+        function shareGarden() {
+            saveAsImage();
+            showModal("Share Your Garden", "Image saved! Follow these steps to share on Instagram.", true);
+        }
+        
+        function copyShareLink() {
+            const url = window.location.href;
+            const dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = url;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            copyLinkBtn.textContent = "Copied!";
+            setTimeout(() => { copyLinkBtn.textContent = "Copy"; }, 2000);
         }
 
         // --- AI Features ---
         async function callGeminiAPI(prompt, jsonSchema = null) {
-            // FIX: Add a placeholder for the user's API key.
-            const apiKey = "AIzaSyChF8jfwVf0uqo1-A_vKVxo2wyLH0vX9Xg"; // <-- PASTE YOUR GOOGLE AI API KEY HERE
+            const apiKey = ""; // <-- PASTE YOUR GOOGLE AI API KEY HERE
 
             if (!apiKey) {
                 showModal("API Key Missing", "Please add your Google AI API key to the script to enable AI features.");
@@ -566,9 +712,15 @@
             return text;
         }
 
-        function showModal(title, text) {
+        function showModal(title, text, isShareModal = false) {
             fortuneTitle.textContent = title;
             fortuneText.textContent = text;
+            if (isShareModal) {
+                shareInstructions.classList.remove('hidden');
+                shareUrlInput.value = window.location.href;
+            } else {
+                shareInstructions.classList.add('hidden');
+            }
             fortuneModal.classList.add('visible');
         }
         
@@ -584,14 +736,16 @@
 
         function getGardenDescription() {
             const rockCount = rocks.length;
+            const tubeCount = sandTubes.length;
             let totalDeformation = 0;
             for (let i = 0; i < deformationBuffer.length; i++) {
                 totalDeformation += Math.abs(deformationBuffer[i]);
             }
             const deformationLevel = totalDeformation > 10 ? (totalDeformation > 100 ? "deeply disturbed" : "gently raked") : "calm";
             const colorDescription = isPainted ? "The sand is vividly colored." : "The sand is natural.";
+            const buildDescription = tubeCount > 0 ? `It features ${tubeCount} sand sculptures.` : "";
 
-            return `The garden has ${rockCount} stones. The sand is ${deformationLevel}. ${colorDescription}`;
+            return `The garden has ${rockCount} stones. The sand is ${deformationLevel}. ${colorDescription} ${buildDescription}`;
         }
 
         async function getFortune() {
