@@ -193,6 +193,31 @@
         #ui-container.minimized #minimize-toggle svg {
             transform: rotate(180deg);
         }
+        #radial-menu {
+            position: fixed;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+        }
+        #radial-menu.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .radial-button {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(31, 41, 55, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(75, 85, 99, 0.8);
+        }
         @media (min-width: 768px) {
             #ui-container {
                 position: absolute;
@@ -354,6 +379,8 @@
             <button id="close-modal" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors mt-6">Close</button>
         </div>
     </div>
+    
+    <div id="radial-menu"></div>
 
     <script type="module">
         import * as THREE from 'three';
