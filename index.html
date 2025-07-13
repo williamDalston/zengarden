@@ -18,7 +18,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #111827;
+            background: linear-gradient(to bottom, #111827, #0c111d);
             font-family: 'Inter', sans-serif;
             overscroll-behavior: none;
         }
@@ -78,7 +78,7 @@
             color: #6b7280;
             cursor: not-allowed;
         }
-        #fortune-modal {
+        .modal-backdrop {
             position: absolute;
             top: 0;
             left: 0;
@@ -93,11 +93,11 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
-        #fortune-modal.visible {
+        .modal-backdrop.visible {
             opacity: 1;
             pointer-events: auto;
         }
-        #fortune-content {
+        .modal-content {
             background-color: #1f2937;
             color: #e5e7eb;
             padding: 24px;
@@ -116,7 +116,6 @@
             padding: 10px;
             width: 100%;
         }
-        /* Custom styles for slider and color picker */
         input[type=range] {
             appearance: none;
             -webkit-appearance: none;
@@ -218,31 +217,45 @@
             </div>
         </div>
 
-        <div class="ui-section">
+        <div id="tool-settings-section" class="ui-section">
             <h2 class="ui-title">Tool Settings</h2>
             <div>
                 <label for="color-picker" class="text-sm font-medium text-gray-300">Tool Color</label>
                 <input type="color" id="color-picker" value="#d2b48c">
             </div>
-            <div>
+            <div id="rake-settings" class="setting-group">
                 <label for="rake-intensity-slider" class="text-sm font-medium text-gray-300">Rake Intensity</label>
                 <input type="range" id="rake-intensity-slider" min="0.05" max="1.5" step="0.01" value="0.4" class="w-full">
             </div>
-             <div>
+             <div id="rock-settings" class="setting-group hidden">
                 <label for="stone-size-slider" class="text-sm font-medium text-gray-300">Stone Size</label>
                 <input type="range" id="stone-size-slider" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full">
             </div>
-            <div>
+            <div id="paint-settings" class="setting-group hidden">
                 <label for="paint-size-slider" class="text-sm font-medium text-gray-300">Paint Brush Size</label>
                 <input type="range" id="paint-size-slider" min="0.1" max="3.0" step="0.05" value="1.5" class="w-full">
             </div>
-             <div>
+             <div id="build-settings" class="setting-group hidden">
                 <label for="build-size-slider" class="text-sm font-medium text-gray-300">Build Size</label>
                 <input type="range" id="build-size-slider" min="0.1" max="1.0" step="0.05" value="0.3" class="w-full">
             </div>
             <div class="flex items-center justify-between">
                 <label for="camera-lock-toggle" class="text-sm font-medium text-gray-300">Lock Camera on Interact</label>
                 <input type="checkbox" id="camera-lock-toggle" class="form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-indigo-600 rounded focus:ring-indigo-500" checked>
+            </div>
+        </div>
+        
+        <div class="ui-section">
+            <h2 class="ui-title">👑 Premium Features</h2>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="cherry-blossom-button" class="tool-button !bg-pink-700/50 !border-pink-500/50 hover:!bg-pink-600/70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 6.5a3 3 0 1 1 3 3M9 6.5v1m-3.5 2a3 3 0 1 0-3 3m3-3h-1m10.5 2a3 3 0 1 1 3 3m-3-3h-1m-3.5-2a3 3 0 1 0-3 3m3-3v1"/></svg>
+                    <span>Blossoms</span>
+                </button>
+                <button id="fog-button" class="tool-button !bg-gray-500/50 !border-gray-400/50 hover:!bg-gray-500/70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a4.6 4.6 0 1 0-8.6 2H4a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2.4 2.4 0 0 0-2-2Z"/><path d="M16 12a4.6 4.6 0 1 0-8.6 2H2a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2a2.4 2.4 0 0 0-2-2Z"/><path d="M12.5 9A4.5 4.5 0 0 0 8 4.5H6.27a2.5 2.5 0 0 0-1.77 4.27"/></svg>
+                    <span>Fog</span>
+                </button>
             </div>
         </div>
 
@@ -259,10 +272,10 @@
         </div>
     </div>
     
-    <div id="fortune-modal">
-        <div id="fortune-content">
-            <h2 id="fortune-title" class="text-2xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">The Garden's Wisdom</h2>
-            <p id="fortune-text" class="text-lg mb-6 leading-relaxed">Reading the patterns in the sand...</p>
+    <div id="info-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h2 id="info-modal-title" class="text-2xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">The Garden's Wisdom</h2>
+            <p id="info-modal-text" class="text-lg mb-6 leading-relaxed">Reading the patterns in the sand...</p>
             <div id="share-instructions" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
                 <p class="mb-2">To share on Instagram:</p>
                 <ol class="list-decimal list-inside space-y-1">
@@ -275,7 +288,11 @@
                     <button id="copy-link-button" class="bg-indigo-600 text-white px-3 py-1 rounded-r-md text-xs">Copy</button>
                 </div>
             </div>
-            <button id="close-modal" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors mt-6">Close</button>
+             <div id="premium-instructions" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
+                 <p class="mb-2">This is a premium feature. In a real app, clicking the button below would take you to a payment page.</p>
+                 <a href="https://github.com/sponsors" target="_blank" class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors mt-4">Unlock Premium (Example)</a>
+            </div>
+            <button id="close-modal" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors mt-6">Close</button>
         </div>
     </div>
 
@@ -409,6 +426,48 @@
             scene.add(rock);
             rocks.push(rock);
         }
+        
+        // --- Premium Features ---
+        let blossomEffect = null;
+        let isFogActive = false;
+
+        function toggleCherryBlossoms(enable) {
+            if (enable && !blossomEffect) {
+                const vertices = [];
+                for (let i = 0; i < 500; i++) {
+                    const x = Math.random() * 30 - 15;
+                    const y = Math.random() * 20;
+                    const z = Math.random() * 30 - 15;
+                    vertices.push(x, y, z);
+                }
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                const material = new THREE.PointsMaterial({
+                    size: 0.1,
+                    color: 0xffc0cb,
+                    transparent: true,
+                    opacity: 0.7,
+                    blending: THREE.AdditiveBlending
+                });
+                blossomEffect = new THREE.Points(geometry, material);
+                scene.add(blossomEffect);
+            } else if (!enable && blossomEffect) {
+                scene.remove(blossomEffect);
+                blossomEffect.geometry.dispose();
+                blossomEffect.material.dispose();
+                blossomEffect = null;
+            }
+        }
+
+        function toggleFog(enable) {
+            if (enable && !isFogActive) {
+                scene.fog = new THREE.Fog(0x111827, 10, 40);
+                isFogActive = true;
+            } else if (!enable && isFogActive) {
+                scene.fog = null;
+                isFogActive = false;
+            }
+        }
 
         // --- Interaction ---
         const raycaster = new THREE.Raycaster();
@@ -429,14 +488,17 @@
         const resetGardenBtn = document.getElementById('reset-garden-button');
         const saveImageBtn = document.getElementById('save-image-button');
         const shareBtn = document.getElementById('share-button');
+        const cherryBlossomBtn = document.getElementById('cherry-blossom-button');
+        const fogBtn = document.getElementById('fog-button');
         const fortuneButton = document.getElementById('fortune-button');
         const nameGardenButton = document.getElementById('name-garden-button');
         const createGardenButton = document.getElementById('create-garden-button');
         const moodInput = document.getElementById('mood-input');
-        const fortuneModal = document.getElementById('fortune-modal');
-        const fortuneTitle = document.getElementById('fortune-title');
-        const fortuneText = document.getElementById('fortune-text');
+        const infoModal = document.getElementById('info-modal');
+        const infoModalTitle = document.getElementById('info-modal-title');
+        const infoModalText = document.getElementById('info-modal-text');
         const shareInstructions = document.getElementById('share-instructions');
+        const premiumInstructions = document.getElementById('premium-instructions');
         const shareUrlInput = document.getElementById('share-url');
         const copyLinkBtn = document.getElementById('copy-link-button');
         const closeModalBtn = document.getElementById('close-modal');
@@ -455,13 +517,14 @@
         resetGardenBtn.addEventListener('click', clearGarden);
         saveImageBtn.addEventListener('click', saveAsImage);
         shareBtn.addEventListener('click', shareGarden);
+        cherryBlossomBtn.addEventListener('click', () => previewPremiumFeature('blossoms'));
+        fogBtn.addEventListener('click', () => previewPremiumFeature('fog'));
         copyLinkBtn.addEventListener('click', copyShareLink);
         fortuneButton.addEventListener('click', getFortune);
         nameGardenButton.addEventListener('click', nameGarden);
         createGardenButton.addEventListener('click', createGardenFromMood);
-        closeModalBtn.addEventListener('click', () => fortuneModal.classList.remove('visible'));
+        closeModalBtn.addEventListener('click', () => infoModal.classList.remove('visible'));
         
-        // Touch and Mouse event listeners
         window.addEventListener('mousedown', onInteractionStart);
         window.addEventListener('mouseup', onInteractionEnd);
         window.addEventListener('mousemove', onInteractionMove);
@@ -475,6 +538,11 @@
             rockToolBtn.classList.toggle('active', currentTool === 'rock');
             paintToolBtn.classList.toggle('active', currentTool === 'paint');
             buildToolBtn.classList.toggle('active', currentTool === 'build');
+            
+            document.getElementById('rake-settings').style.display = currentTool === 'rake' ? 'block' : 'none';
+            document.getElementById('rock-settings').style.display = currentTool === 'rock' ? 'block' : 'none';
+            document.getElementById('paint-settings').style.display = currentTool === 'paint' ? 'block' : 'none';
+            document.getElementById('build-settings').style.display = currentTool === 'build' ? 'block' : 'none';
         }
 
         function getPointerCoords(event) {
@@ -662,7 +730,7 @@
         
         function shareGarden() {
             saveAsImage();
-            showModal("Share Your Garden", "Image saved! Follow these steps to share on Instagram.", true);
+            showModal("Share Your Garden", "Image saved! Follow these steps to share on Instagram.", 'share');
         }
         
         function copyShareLink() {
@@ -679,7 +747,7 @@
 
         // --- AI Features ---
         async function callGeminiAPI(prompt, jsonSchema = null) {
-            const apiKey = ""; // <-- PASTE YOUR GOOGLE AI API KEY HERE
+            const apiKey = "AIzaSyChF8jfwVf0uqo1-A_vKVxo2wyLH0vX9Xg";
 
             if (!apiKey) {
                 showModal("API Key Missing", "Please add your Google AI API key to the script to enable AI features.");
@@ -712,16 +780,37 @@
             return text;
         }
 
-        function showModal(title, text, isShareModal = false) {
-            fortuneTitle.textContent = title;
-            fortuneText.textContent = text;
-            if (isShareModal) {
+        function showModal(title, text, type = 'info') {
+            infoModalTitle.textContent = title;
+            infoModalText.textContent = text;
+            
+            shareInstructions.classList.add('hidden');
+            premiumInstructions.classList.add('hidden');
+
+            if (type === 'share') {
                 shareInstructions.classList.remove('hidden');
                 shareUrlInput.value = window.location.href;
-            } else {
-                shareInstructions.classList.add('hidden');
+            } else if (type === 'premium') {
+                premiumInstructions.classList.remove('hidden');
             }
-            fortuneModal.classList.add('visible');
+            
+            infoModal.classList.add('visible');
+        }
+
+        function previewPremiumFeature(feature) {
+            if (feature === 'blossoms') {
+                toggleCherryBlossoms(true);
+                setTimeout(() => {
+                    toggleCherryBlossoms(false);
+                    showModal('Unlock Cherry Blossoms', 'This is a premium feature.', 'premium');
+                }, 5000);
+            } else if (feature === 'fog') {
+                toggleFog(true);
+                setTimeout(() => {
+                    toggleFog(false);
+                    showModal('Unlock Misty Fog', 'This is a premium feature.', 'premium');
+                }, 5000);
+            }
         }
         
         function setLoadingState(isLoading) {
@@ -920,6 +1009,14 @@
             requestAnimationFrame(animate);
             controls.update();
             applyDeformations();
+            
+            if(blossomEffect) {
+                blossomEffect.position.y -= 0.01;
+                if(blossomEffect.position.y < -10) {
+                    blossomEffect.position.y = 10;
+                }
+            }
+
             renderer.render(scene, camera);
         }
 
