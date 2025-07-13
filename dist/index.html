@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Interactive AI Zen Garden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(to bottom, #111827, #0c111d);
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+        }
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        #ui-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(17, 24, 39, 0.9);
+            padding: 12px;
+            border-top: 1px solid rgba(55, 65, 81, 0.5);
+            transition: transform 0.3s ease-in-out;
+        }
+        #ui-container.minimized {
+            transform: translateY(calc(100% - 50px));
+        }
+        #ui-scroll-area {
+             overflow-x: auto;
+             display: flex;
+             gap: 16px;
+             padding-bottom: 12px;
+        }
+        .ui-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background-color: rgba(31, 41, 55, 0.5);
+            border-radius: 12px;
+            min-width: 240px;
+        }
+        .ui-title {
+            font-weight: 600;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tool-button {
+            background-color: rgba(55, 65, 81, 0.8);
+            color: white;
+            border: 1px solid rgba(75, 85, 99, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .tool-button:hover, .tool-button.active {
+            background-color: rgba(79, 70, 229, 0.9);
+            border-color: rgba(129, 140, 248, 0.9);
+        }
+        .tool-button:disabled {
+            background-color: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid #4b5563;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        #mood-input {
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+        }
+        input[type=range] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4b5563;
+            border-radius: 5px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: 2px solid #c7d2fe;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type="color"] {
+            appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            width: 100%;
+            height: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+        }
+        #minimize-toggle {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 20px;
+            background-color: rgba(17, 24, 39, 0.85);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            border-bottom: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #minimize-toggle svg {
+            transition: transform 0.3s ease-in-out;
+        }
+        #ui-container.minimized #minimize-toggle svg {
+            transform: rotate(180deg);
+        }
+        #radial-menu {
+            position: fixed;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+        }
+        #radial-menu.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .radial-button {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(31, 41, 55, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(75, 85, 99, 0.8);
+        }
+        @media (min-width: 768px) {
+            #ui-container {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                bottom: auto;
+                width: 280px;
+                flex-direction: column;
+                overflow-x: hidden;
+                overflow-y: auto;
+                border-top: 1px solid rgba(55, 65, 81, 0.5);
+                border-left: 1px solid rgba(55, 65, 81, 0.5);
+            }
+             #ui-scroll-area {
+                flex-direction: column;
+                overflow-x: hidden;
+             }
+            #minimize-toggle {
+                display: none;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/"
+        }
+    }
+    </script>
+  <script type="module" crossorigin src="./assets/index-Cn-frM36.js"></script>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div id="minimize-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+        </div>
+        <div id="ui-scroll-area">
+            <div class="ui-section">
+                <h2 class="ui-title">Tools</h2>
+                <div class="grid grid-cols-3 gap-2">
+                     <button id="control-scene-button" class="tool-button active">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10c0-4.42-2.87-8.17-7-9.58"/><path d="M15.54 21.53a10 10 0 0 0 5.1-12.81"/><path d="M3.37 10.09a10 10 0 0 0 17.26 0"/></svg>
+                        <span>Control</span>
+                    </button>
+                    <button id="rake-tool" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5v14"/><path d="M12 5v14"/><path d="M9 5v14"/><path d="M5 5v14"/><path d="M2 9h20"/></svg>
+                        <span>Rake</span>
+                    </button>
+                    <button id="rock-tool" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        <span>Stone</span>
+                    </button>
+                    <button id="paint-tool" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M16 4h-4a4 4 0 1 0 0 8h4"/><path d="M16 4v4"/><path d="M20 8v4"/></svg>
+                        <span>Paint</span>
+                    </button>
+                     <button id="build-tool" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        <span>Build</span>
+                    </button>
+                     <button id="object-tool" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m10 14 2 2 2-2"/></svg>
+                        <span>Objects</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                     <button id="undo-button" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13v-2.2a2 2 0 0 0-1.2-1.8L12 5.33a2 2 0 0 0-1.9 0L3.2 9A2 2 0 0 0 2 10.85V13"/><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"/><path d="M12 18v-6"/></svg>
+                        <span>Undo</span>
+                    </button>
+                    <button id="reset-garden-button" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+                        <span>Reset</span>
+                    </button>
+                    <button id="save-image-button" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span>Save</span>
+                    </button>
+                    <button id="share-button" class="tool-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                        <span>Share</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="tool-settings-section" class="ui-section">
+                <h2 class="ui-title">Tool Settings</h2>
+                <div>
+                    <label for="color-picker" class="text-sm font-medium text-gray-300">Tool Color</label>
+                    <input type="color" id="color-picker" value="#d2b48c">
+                </div>
+                <div id="rake-settings" class="setting-group hidden">
+                    <label for="rake-intensity-slider" class="text-sm font-medium text-gray-300">Rake Intensity</label>
+                    <input type="range" id="rake-intensity-slider" min="0.05" max="1.5" step="0.01" value="0.4" class="w-full">
+                </div>
+                 <div id="rock-settings" class="setting-group hidden">
+                    <label for="stone-size-slider" class="text-sm font-medium text-gray-300">Stone Size</label>
+                    <input type="range" id="stone-size-slider" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full">
+                </div>
+                <div id="paint-settings" class="setting-group hidden">
+                    <label for="paint-size-slider" class="text-sm font-medium text-gray-300">Paint Brush Size</label>
+                    <input type="range" id="paint-size-slider" min="0.1" max="3.0" step="0.05" value="1.5" class="w-full">
+                </div>
+                 <div id="build-settings" class="setting-group hidden">
+                    <label for="build-size-slider" class="text-sm font-medium text-gray-300">Build Size</label>
+                    <input type="range" id="build-size-slider" min="0.1" max="1.0" step="0.05" value="0.3" class="w-full">
+                    <label for="build-height-slider" class="text-sm font-medium text-gray-300 mt-2">Build Height</label>
+                    <input type="range" id="build-height-slider" min="0" max="10" step="0.1" value="0" class="w-full">
+                </div>
+                <div id="object-settings" class="setting-group hidden">
+                    <label for="object-select" class="text-sm font-medium text-gray-300">Object Type</label>
+                    <select id="object-select" class="w-full bg-gray-700 border border-gray-600 text-white rounded-md p-2">
+                        <option value="bonsai">Bonsai Tree</option>
+                        <option value="lantern">Lantern</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <h2 class="ui-title">Environment</h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="day-night-button" class="tool-button">Day</button>
+                    <button id="rain-button" class="tool-button">Rain</button>
+                    <button id="blossom-button" class="tool-button">Blossom</button>
+                </div>
+            </div>
+
+            <div class="ui-section">
+                <h2 class="ui-title">✨ AI Magic</h2>
+                <input type="text" id="mood-input" placeholder="Enter a mood (e.g., 'serenity')">
+                <button id="create-garden-button" class="tool-button !bg-green-700 !border-green-500 hover:!bg-green-600">Create from Mood</button>
+                <button id="name-garden-button" class="tool-button !bg-blue-700 !border-blue-500 hover:!bg-blue-600">Name This Garden</button>
+                <button id="fortune-button" class="tool-button !bg-purple-700 !border-purple-500 hover:!bg-purple-600">Read its Fortune</button>
+                <button id="meditate-button" class="tool-button !bg-teal-700 !border-teal-500 hover:!bg-teal-600">Meditate on This</button>
+            </div>
+
+            <div class="ui-section text-center text-xs text-gray-500 pt-2 border-t border-gray-700/50">
+                App made by Will Alston
+            </div>
+        </div>
+    </div>
+    
+    <div id="info-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h2 id="info-modal-title" class="text-2xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">The Garden's Wisdom</h2>
+            <p id="info-modal-text" class="text-lg mb-6 leading-relaxed">Reading the patterns in the sand...</p>
+            <div id="share-instructions" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
+                <p class="mb-2">To share on Instagram:</p>
+                <ol class="list-decimal list-inside space-y-1">
+                    <li>Open Instagram & create a new Story.</li>
+                    <li>Select the image of your garden from your camera roll.</li>
+                    <li>Use the "Link" sticker and paste this URL:</li>
+                </ol>
+                <div class="flex items-center mt-2">
+                    <input type="text" id="share-url" readonly class="bg-gray-700 text-gray-300 text-xs p-1 rounded-l-md w-full">
+                    <button id="copy-link-button" class="bg-indigo-600 text-white px-3 py-1 rounded-r-md text-xs">Copy</button>
+                </div>
+            </div>
+             <div id="ad-simulation" class="hidden text-left text-sm mt-4 bg-gray-800 p-3 rounded-lg">
+                 <p class="mb-2">In a real app, an ad would play now. This unlocks the AI feature.</p>
+                 <div id="ad-timer" class="text-center text-2xl font-bold">5</div>
+            </div>
+            <button id="close-modal" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors mt-6">Close</button>
+        </div>
+    </div>
+    
+    <div id="radial-menu"></div>
+
+</body>
+</html>
