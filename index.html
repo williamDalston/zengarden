@@ -14,7 +14,6 @@
         }
     }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <style>
         body {
@@ -386,13 +385,24 @@
     
     <div id="radial-menu"></div>
 
+
         <script type="module">
+
+
 
     document.addEventListener('DOMContentLoaded', async () => {
 
+
+
         if (window.Capacitor?.isNativePlatform()) {
 
+
+
         const { AdMob, BannerAdSize } = await import('@capacitor-community/admob');
+
+
+
+
 
 
 
@@ -400,39 +410,77 @@
 
 
 
+
+
+
+
         await AdMob.initialize({
+
+
 
             requestTrackingAuthorization: false
 
+
+
         });
+
+
+
+
 
 
 
         await AdMob.showBanner({
 
+
+
             adId: Capacitor.getPlatform() === 'ios'
+
+
 
             ? 'ca-app-pub-3940256099942544/2934735716'
 
+
+
             : 'ca-app-pub-3940256099942544/6300978111',
+
+
 
             adSize: BannerAdSize.SMART_BANNER,
 
+
+
             position: 'bottom',   // replaced AdPosition.BOTTOM_CENTER
 
+
+
             margin: 0
+
+
 
         });
 
 
 
+
+
+
+
         AdMob.addListener('onAdLoaded', () => console.log('Banner loaded'));
+
+
 
         AdMob.addListener('onAdFailedToLoad', err => console.warn('Banner error', err));
 
+
+
         }
 
+
+
     });
+
+
 
     </script>
 
